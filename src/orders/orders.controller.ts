@@ -12,6 +12,8 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ORDER_SERVICE } from '../config/services.js';
 import { firstValueFrom } from 'rxjs';
 import { CreateOrderDto, OrderPaginationDto } from './dto/index.js';
+import { PaginationDto } from '../common/dto/pagination.dto.js';
+import { StatusDto } from './dto/status.dto.js';
 
 @Controller('orders')
 export class OrdersController {
@@ -29,7 +31,7 @@ export class OrdersController {
     return this.ordersClient.send('findAllOrders', orderPaginationDto);
   }
 
-  @Get(':id')
+  @Get('/id/:id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     try {
       const order = await firstValueFrom(
@@ -37,6 +39,21 @@ export class OrdersController {
       );
 
       return order;
+    } catch (error) {
+      throw new RpcException(error as any);
+    }
+  }
+
+  @Get(':status')
+  async findAllByStatus(
+    @Param() statusDto: StatusDto,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    try {
+      return this.ordersClient.send('findAllOrders', {
+        ...paginationDto,
+        status: statusDto.status,
+      });
     } catch (error) {
       throw new RpcException(error as any);
     }
