@@ -7,6 +7,7 @@ import {
   Inject,
   Query,
   ParseUUIDPipe,
+  Patch,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ORDER_SERVICE } from '../config/services.js';
@@ -52,6 +53,21 @@ export class OrdersController {
     try {
       return this.ordersClient.send('findAllOrders', {
         ...paginationDto,
+        status: statusDto.status,
+      });
+    } catch (error) {
+      throw new RpcException(error as any);
+    }
+  }
+
+  @Patch(':id')
+  changeStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() statusDto: StatusDto,
+  ) {
+    try {
+      return this.ordersClient.send('changeOrderStatus', {
+        id,
         status: statusDto.status,
       });
     } catch (error) {
